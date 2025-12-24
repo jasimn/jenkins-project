@@ -51,14 +51,7 @@ pipeline {
                 echo "Deploying application using PM2"
                 dir('node-github-app') {
                     sh '''
-                        # Install PM2 if not present
-                        if ! command -v pm2 >/dev/null 2>&1; then
-                            sudo npm install -g pm2
-                        fi
-
-                        # Restart or start the app
                         pm2 restart ${APP_NAME} || pm2 start app.js --name ${APP_NAME}
-
                         pm2 save
                     '''
                 }
