@@ -51,7 +51,8 @@ pipeline {
                 echo "Deploying application using PM2"
                 dir('node-github-app') {
                     sh '''
-                        pm2 restart ${APP_NAME} || pm2 start app.js --name ${APP_NAME}
+                        pm2 delete ${APP_NAME} || true
+                        pm2 start app.js --name ${APP_NAME}
                         pm2 save
                     '''
                 }
