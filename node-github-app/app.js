@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 
 app.get("/", (req, res) => {
-  res.send("Hello world, Jenkins Pipeline with Node.js from GitHub!");
+  res.send("hello world");
 });
 
 const PORT = 3000;
