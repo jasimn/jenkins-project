@@ -2,63 +2,68 @@ pipeline {
     agent any
 
     environment {
-        REPO_URL = "https://github.com/jasimn/jenkins-project.git"
-        REPO_DIR = "${WORKSPACE}/node-github-app"
-        BRANCH_NAME = "main"
         NODE_ENV = "production"
+        APP_NAME = "node-github-app"
+        APP_PORT = "3000"
     }
 
     stages {
 
-        stage('Fetch Code from GitHub') {
+        stage('Checkout Code') {
             steps {
-                script {
-                    echo "Fetching latest code from GitHub..."
-                    sh """
-                        if [ -d "${REPO_DIR}" ]; then
-                            cd ${REPO_DIR}
-                            git reset --hard
-                            git checkout ${BRANCH_NAME}
-                            git pull origin ${BRANCH_NAME}
-                        else
-                            git clone --branch ${BRANCH_NAME} ${REPO_URL} ${REPO_DIR}
-                        fi
-                    """
-                }
+                echo "Checking out code from GitHub"
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                echo "Installing Node.js dependencies"
+                sh '''
+                    node -v
+                    npm -v
+                    npm install
+                '''
             }
         }
 
         stage('Build Application') {
             steps {
-                dir("${REPO_DIR}") {
-                    sh """
-                        set -e
-                        npm install
-                        npm run build
-                    """
-                }
+                echo "Building application"
+                sh '''
+                    npm run build
+                '''
             }
         }
 
-        stage('Deploy to Production') {
+        stage('Deploy to Production (PM2)') {
             steps {
-                dir("${REPO_DIR}") {
-                    sh """
-                        set -e
-                        pkill -f "node app.js" || true
-                        nohup node app.js > app.log 2>&1 &
-                    """
-                }
+                echo "Deploying application using PM2"
+                sh '''
+                    # Install PM2 if not present
+                    if ! command -v pm2 >/dev/null 2>&1; then
+                        sudo npm install -g pm2
+                    fi
+
+                    # Stop old app if exists
+                    pm2 delete ${APP_NAME} || true
+
+                    # Start app with PM2
+                    pm2 start app.js --name ${APP_NAME} --env production
+
+                    # Save PM2 process list
+                    pm2 save
+                '''
             }
         }
     }
 
     post {
         success {
-            echo "🚀 Node.js application deployed successfully!"
+            echo "🚀 Node.js application deployed successfully and running on port 3000"
         }
         failure {
-            echo "❌ Deployment failed!"
+            echo "❌ Deployment failed"
         }
     }
 }
