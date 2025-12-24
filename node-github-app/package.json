@@ -1,0 +1,12 @@
+{
+  "name": "node-github-jenkins-app",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "build": "echo Build completed",
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
